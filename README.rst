@@ -20,7 +20,7 @@ Read and write different types of Radio-Frequency IDentification (RFID) cards
 on your Arduino using a RC522 based reader connected via the Serial Peripheral
 Interface (SPI) interface.
 
-For advanced and further development please use library `RFID_MFRC522v2 <https://github.com/OSSLibraries/Arduino_MFRC522v2>`_.
+This library was forked from miguelbalboa's, which was not maintained since 2019 when forked. There is a recommendation to use library `RFID_MFRC522v2 <https://github.com/OSSLibraries/Arduino_MFRC522v2>`_ instead, but I wasn't able to compile a working sketch, whereas this version worked right from the beginning.
 
 .. _development:
 Development
@@ -28,15 +28,14 @@ Development
 
 **The development by owner miguelbalboa has ended**.
 
-**Feature status: complete freeze**; no function or API change.
+**Feature status: partial freeze**; function for NTAG2xx tags were added.
 
 **Code status: partial freeze**; just fixes/typos or documentation updates; *no* extensions for other boards; *no* new examples.
 
 **Maintenance status: sporadically**.
 
 **Why no further development?**
-This library has a long history and is used in many projects. These projects often do not document what version they use. Committing changes might break those old projects and lead to bad experiences (for beginners) and support requests. For these reasons the library is in freeze mode. You can still commit typo, documentation or bug fixes.
-
+This library has a long history and is used in many projects. The added functions will not break any other projects which use this library, since previous functions remained completely untouched.
 
 .. _before buy:
 Before buy
@@ -44,8 +43,6 @@ Before buy
 Please notice that there are many sellers (ebay, aliexpress, ..) who sell mfrc522 boards. **The quality of these boards are extremely different.** Some are soldered with wrong/low quality capacitors or fake/defect mfrc522.
 
 **Please consider buying several devices from different suppliers.** So the chance of getting a working device is higher.
-
-If you got a bad board and you can tell us how to detect those boards (silk, chip description, ..), please share your knowledge.
 
 
 .. _what works and not:
@@ -58,12 +55,12 @@ What works and not?
   #. Communication (Crypto1) with MIFARE Classic compatible PICCs.
   #. Firmware self check of MFRC522.
   #. Set the UID, write to sector 0, and unbrick Chinese UID changeable MIFARE cards.
+  #. Full support for NTAG2xx tags & cards
   #. Manage the SPI chip select pin (aka SS, SDA)
 
 * **Works partially**
 
   #. Communication with MIFARE Ultralight.
-  #. Other PICCs (Ntag216).
   #. More than 2 modules, require a multiplexer `#191 <https://github.com/miguelbalboa/rfid/issues/191#issuecomment-242631153>`_.
 
 * **Doesn't work**
@@ -378,7 +375,7 @@ It has been extended with functionality to alter sector 0 on Chinese UID changea
 
 Maintained by miguelbalboa until 2016.
 Maintained by Rotzbua from 2016 until 2022.
-
+Upgraded by LeisureLadi in 2023.
 
 .. _arduino: https://arduino.cc/
 .. _ebay: https://www.ebay.com/
