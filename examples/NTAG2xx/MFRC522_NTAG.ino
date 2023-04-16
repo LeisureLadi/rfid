@@ -1,5 +1,5 @@
 /*
- * This example show how you deal with NTAG213/215/216 tags. By default the tags are unprotected. I order to protect them please consult the corresponding data sheet.
+ * This example show how you deal with NTAG213/215/216 tags. By default the tags are unprotected. In order to protect them please consult the corresponding data sheet.
  * @license Released into the public domain.
  */
 
