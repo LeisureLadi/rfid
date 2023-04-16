@@ -1,15 +1,6 @@
 MFRC522
 =======
 
-.. image:: https://img.shields.io/maintenance/no/2019.svg
-    :target: `development`_
-.. image:: https://img.shields.io/badge/C%2B%2B-11-brightgreen.svg
-    :target: `compatible ide`_
-.. image:: https://img.shields.io/github/release/leisureladi/rfid.svg?colorB=green
-    :target: https://github.com/leisureladi/rfid/releases
-    :alt: Releases
-.. image:: https://img.shields.io/badge/ArduinoIDE-%3E%3D1.6.10-lightgrey.svg
-    :target: `compatible ide`_
 
 Arduino library for MFRC522 and other RFID RC522 based modules.
 
