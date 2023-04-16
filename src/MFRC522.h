@@ -212,7 +212,16 @@ public:
 		PICC_CMD_MF_TRANSFER	= 0xB0,		// Writes the contents of the internal data register to a block.
 		// The commands used for MIFARE Ultralight (from http://www.nxp.com/documents/data_sheet/MF0ICU1.pdf, Section 8.6)
 		// The PICC_CMD_MF_READ and PICC_CMD_MF_WRITE can also be used for MIFARE Ultralight.
-		PICC_CMD_UL_WRITE		= 0xA2		// Writes one 4 byte page to the PICC.
+		PICC_CMD_UL_WRITE		= 0xA2,		// Writes one 4 byte page to the PICC.
+		// The commands used for NTAG2xx
+		PICC_CMD_NTAG2XX_WRITE	= 0xA2,		// Write one 4 byte page to the PICC.
+		PICC_CMD_NTAG2XX_CMPWRT	= 0xA0,		// 
+		PICC_CMD_NTAG2XX_READ	= 0x30,		// Reads one 16 byte block from the authenticated page of the PICC. Also used for MIFARE Ultralight.
+		PICC_CMD_NTAG2XX_FSTREAD= 0x3A,		// Reads the indicated pages at once
+		PICC_CMD_NTAG2XX_PW_AUTH= 0x1B,		// Authenticates with the provided PWD
+		PICC_CMD_NTAG2XX_GET_VER= 0x60,		// Reads the VERSION info
+		PICC_CMD_NTAG2XX_READSIG= 0x3C,		// Reads the SIGNATURE info
+		PICC_CMD_NTAG2XX_READCNT= 0x39		// Reads the counter of unsuccessful authentication attemps
 	};
 	
 	// MIFARE constants that does not fit anywhere else
@@ -234,6 +243,9 @@ public:
 		PICC_TYPE_MIFARE_PLUS	,	// MIFARE Plus
 		PICC_TYPE_MIFARE_DESFIRE,	// MIFARE DESFire
 		PICC_TYPE_TNP3XXX		,	// Only mentioned in NXP AN 10833 MIFARE Type Identification Procedure
+		PICC_TYPE_NTAG213		,	// NTAG213
+		PICC_TYPE_NTAG215		,	// NTAG215
+		PICC_TYPE_NTAG216		,	// NTAG216
 		PICC_TYPE_NOT_COMPLETE	= 0xff	// SAK indicates UID is not complete.
 	};
 	
@@ -328,7 +340,19 @@ public:
 	StatusCode MIFARE_Transfer(byte blockAddr);
 	StatusCode MIFARE_GetValue(byte blockAddr, int32_t *value);
 	StatusCode MIFARE_SetValue(byte blockAddr, int32_t value);
-	StatusCode PCD_NTAG216_AUTH(byte *passWord, byte pACK[]);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Functions for communicating with NTAG2XX PICCs
+	/////////////////////////////////////////////////////////////////////////////////////
+	StatusCode NTAG2XX_GETVERSION(byte *buffer, byte bufferSize);
+	StatusCode NTAG2XX_GETSIGNATURE(byte *buffer, byte bufferSize);
+	StatusCode NTAG2XX_GETCNT(byte *buffer, byte bufferSize);
+	StatusCode NTAG2XX_AUTH(byte *passWord, byte *pACK);
+	StatusCode NTAG2XX_Read4Pages(byte pageAddr, byte *buffer, byte *bufferSize);
+	StatusCode NTAG2XX_FastRead(byte pageAddr, byte pages, byte *buffer, byte *bufferSize);
+	StatusCode NTAG2XX_Write(byte pageAddr, byte *buffer, byte bufferSize);
+	static PICC_Type NTAG2XX_GetType(byte *buffer);
+
 	
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Support functions
@@ -360,6 +384,7 @@ public:
 	// Convenience functions - does not add extra functionality
 	/////////////////////////////////////////////////////////////////////////////////////
 	virtual bool PICC_IsNewCardPresent();
+	virtual bool PICC_IsCardStillPresent();
 	virtual bool PICC_ReadCardSerial();
 	
 protected:

@@ -1195,28 +1195,151 @@ MFRC522::StatusCode MFRC522::MIFARE_SetValue(byte blockAddr, int32_t value) {
 	return MIFARE_Write(blockAddr, buffer, 16);
 } // End MIFARE_SetValue()
 
+
+
 /**
- * Authenticate with a NTAG216.
+ * Get Version Info from NTAG2XX.
  * 
- * Only for NTAG216. First implemented by Gargantuanman.
- * 
- * @param[in]   passWord   password.
- * @param[in]   pACK       result success???.
+ * @param[in]   buffer       for Version Info
  * @return STATUS_OK on success, STATUS_??? otherwise.
  */
-MFRC522::StatusCode MFRC522::PCD_NTAG216_AUTH(byte* passWord, byte pACK[]) //Authenticate with 32bit password
+MFRC522::StatusCode MFRC522::NTAG2XX_GETVERSION(byte *buffer, byte bufferSize)
 {
-	// TODO: Fix cmdBuffer length and rxlength. They really should match.
-	//       (Better still, rxlength should not even be necessary.)
-
 	MFRC522::StatusCode result;
-	byte				cmdBuffer[18]; // We need room for 16 bytes data and 2 bytes CRC_A.
+	byte cmdBuffer[10]; // We need room for 8 bytes + 2 for CRC_A.
 	
-	cmdBuffer[0] = 0x1B; //Comando de autentificacion
+	// Sanity check
+	if (buffer == nullptr || bufferSize < 8) {
+		return STATUS_NO_ROOM;
+	}
+
+	// Build command buffer
+	cmdBuffer[0] = PICC_CMD_NTAG2XX_GET_VER;
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(cmdBuffer, 1, &cmdBuffer[1]);
 	
-	for (byte i = 0; i<4; i++)
-		cmdBuffer[i+1] = passWord[i];
+	if (result!=STATUS_OK) {
+		return result;
+	}
 	
+	// Transceive the data, store the reply in cmdBuffer[]
+	byte waitIRq		= 0x30;	// RxIRq and IdleIRq
+	byte cmdBufferSize	= sizeof(cmdBuffer);
+	byte validBits		= 0;
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, 3, cmdBuffer, &cmdBufferSize, &validBits);
+	
+	memcpy(buffer, cmdBuffer, 8);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	return STATUS_OK;
+} // End NTAG2XX_GETVERSION()
+
+
+/**
+ * Get Signature from NTAG2XX.
+ * 
+ * @param[in]   buffer       for Singature
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_GETSIGNATURE(byte *buffer, byte bufferSize)
+{
+	MFRC522::StatusCode result;
+	byte cmdBuffer[34]; // We need space for 32 bytes + 2 for CRC_A.
+	
+	// Sanity check
+	if (buffer == nullptr || bufferSize < 32) {
+		return STATUS_NO_ROOM;
+	}
+
+	// Build command buffer
+	cmdBuffer[0] = PICC_CMD_NTAG2XX_READSIG;
+	cmdBuffer[1] = 0x0;
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(cmdBuffer, 2, &cmdBuffer[2]);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	// Transceive the data, store the reply in cmdBuffer[]
+	byte waitIRq		= 0x30;	// RxIRq and IdleIRq
+	byte cmdBufferSize	= sizeof(cmdBuffer);
+	byte validBits		= 0;
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, 4, cmdBuffer, &cmdBufferSize, &validBits);
+	
+	memcpy(buffer, cmdBuffer, 32);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	return STATUS_OK;
+} // End NTAG2XX_GETSIGNATURE()
+
+
+/**
+ * Get Counter from NTAG2XX.
+ * 
+ * @param[in]   buffer       for Counter
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_GETCNT(byte *buffer, byte bufferSize)
+{
+	MFRC522::StatusCode result;
+	byte cmdBuffer[6]; // We need space for a few bytes + 2 for CRC_A.
+	
+	// Sanity check
+	if (buffer == nullptr || bufferSize < 4) {
+		return STATUS_NO_ROOM;
+	}
+
+	// Build command buffer
+	cmdBuffer[0] = PICC_CMD_NTAG2XX_READCNT;
+	cmdBuffer[1] = 0x2;
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(cmdBuffer, 2, &cmdBuffer[2]);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	// Transceive the data, store the reply in cmdBuffer[]
+	byte waitIRq		= 0x30;	// RxIRq and IdleIRq
+	byte cmdBufferSize	= sizeof(cmdBuffer);
+	byte validBits		= 0;
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, 4, cmdBuffer, &cmdBufferSize, &validBits);
+	
+	memcpy(buffer, cmdBuffer, 4);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	return STATUS_OK;
+} // End NTAG2XX_GETCNT()
+
+
+/**
+ * Authenticate with a NTAG2XX.
+ * 
+ * @param[in]   passWord   password.
+ * @param[in]   pACK       password acknowledge response
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_AUTH(byte* passWord, byte* pACK) //Authenticate with 32bit password
+{
+	MFRC522::StatusCode result;
+	byte cmdBuffer[7]; // We need space for 1 byte command + 4 bytes data and 2 bytes CRC_A.
+	
+	// Build command buffer
+	cmdBuffer[0] = PICC_CMD_NTAG2XX_PW_AUTH;
+	
+	memcpy(cmdBuffer+1,passWord,4);
+	
+	// Calculate CRC_A
 	result = PCD_CalculateCRC(cmdBuffer, 5, &cmdBuffer[5]);
 	
 	if (result!=STATUS_OK) {
@@ -1225,20 +1348,143 @@ MFRC522::StatusCode MFRC522::PCD_NTAG216_AUTH(byte* passWord, byte pACK[]) //Aut
 	
 	// Transceive the data, store the reply in cmdBuffer[]
 	byte waitIRq		= 0x30;	// RxIRq and IdleIRq
-//	byte cmdBufferSize	= sizeof(cmdBuffer);
+	byte cmdBufferSize	= sizeof(cmdBuffer);
+//	byte cmdBufferSize	= 4;
 	byte validBits		= 0;
-	byte rxlength		= 5;
-	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, 7, cmdBuffer, &rxlength, &validBits);
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, 7, cmdBuffer, &cmdBufferSize, &validBits);
 	
-	pACK[0] = cmdBuffer[0];
-	pACK[1] = cmdBuffer[1];
+	memcpy(pACK, cmdBuffer, 2);
 	
 	if (result!=STATUS_OK) {
 		return result;
 	}
 	
 	return STATUS_OK;
-} // End PCD_NTAG216_AUTH()
+} // End NTAG2XX_AUTH()
+
+
+/**
+ * Reads 4 pages = 16 bytes (+ 2 bytes CRC_A) from NTAG2XX PICC.
+ * 
+ * The NTAG2XX responds to the READ command by sending 16 bytes starting from the page address defined by the command argument.
+ * For example; if blockAddr is 03h then pages 03h, 04h, 05h, 06h are returned.
+ * A roll-back is implemented: If blockAddr is beyond the end, then the contents of pages 00h, 01h, ... are returned.
+ * 
+ * The buffer must be at least 18 bytes because a CRC_A is also returned.
+ * Checks the CRC_A before returning STATUS_OK.
+ * 
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_Read4Pages(byte pageAddr, 	///< The first page to return data from.
+												byte *buffer,		///< The buffer to store the data in
+												byte *bufferSize	///< Buffer size, at least 18 bytes. Also number of bytes returned if STATUS_OK.
+										) {
+	MFRC522::StatusCode result;
+	
+	// Sanity check
+	if (buffer == nullptr || *bufferSize < 18) {
+		return STATUS_NO_ROOM;
+	}
+	
+	// Build command buffer
+	buffer[0] = PICC_CMD_NTAG2XX_READ;
+	buffer[1] = pageAddr;
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(buffer, 2, &buffer[2]);
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	// Transmit the buffer and receive the response, validate CRC_A.
+	return PCD_TransceiveData(buffer, 4, buffer, bufferSize, nullptr, 0, true);
+} // End NTAG2XX_Read()
+
+
+/**
+ * Reads several pages of 4 bytes each (+ 2 bytes CRC_A) from NTAG2XX PICC.
+ * 
+ * The NTAG2XX responds to the READ command by sending 16 bytes starting from the page address defined by the command argument.
+ * For example; if blockAddr is 03h then pages 03h, 04h, 05h, 06h are returned.
+ * A roll-back is implemented: If blockAddr is beyond the end, then the contents of pages 00h, 01h, ... are returned.
+ * 
+ * The buffer must be at least 18 bytes because a CRC_A is also returned.
+ * Checks the CRC_A before returning STATUS_OK.
+ * 
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_FastRead	(byte pageAddr, 	///< The first page to return data from.
+												byte pages,			///< The number of pages to read (max. 15 in order to not exceed 64 bytes incl. 2 CRC bytes)
+												byte *buffer,		///< The buffer to store the data in
+												byte *bufferSize	///< Buffer size, at least 4 x pages + 2 bytes. Also number of bytes returned if STATUS_OK.
+										) {
+	MFRC522::StatusCode result;		
+	
+	// Sanity check
+	if (buffer == nullptr || *bufferSize < (4 * pages + 2)) {
+		return STATUS_NO_ROOM;
+	}
+	
+	// Build command buffer
+	buffer[0] = PICC_CMD_NTAG2XX_FSTREAD;
+	buffer[1] = pageAddr;
+	buffer[2] = pageAddr + pages - 1;
+	
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(buffer, 3, &buffer[3]);
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	// Transceive the data, store the reply in buffer[]
+	byte waitIRq		= 0x30;	// RxIRq and IdleIRq
+	byte validBits		= 0;
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, buffer, 5, buffer, bufferSize, &validBits);
+	
+	if (result!=STATUS_OK) {
+		return result;
+	}
+	
+	return STATUS_OK;
+} // End NTAG2XX_FastRead()
+
+/**
+ * Writes a 4 byte page to the NTAG2XX PICC.
+ * 
+ * @return STATUS_OK on success, STATUS_??? otherwise.
+ */
+MFRC522::StatusCode MFRC522::NTAG2XX_Write(	byte pageAddr, 	///< The page to write to.
+											byte *buffer,	///< The 4 bytes to write to the PICC
+											byte bufferSize	///< Buffer size, must be at least 4 bytes. Exactly 4 bytes are written.
+											) {
+	MFRC522::StatusCode result;
+	byte cmdBuffer[8];
+	
+	// Sanity check
+	if (buffer == nullptr || bufferSize < 4) {
+		return STATUS_INVALID;
+	}
+	
+	// Build commmand buffer
+	cmdBuffer[0] = PICC_CMD_NTAG2XX_WRITE;
+	cmdBuffer[1] = pageAddr;
+	memcpy(&cmdBuffer[2], buffer, 4);
+	
+	// Perform the write
+	result = PCD_MIFARE_Transceive(cmdBuffer, 6); // Adds CRC_A and checks that the response is MF_ACK.
+	if (result != STATUS_OK) {
+		return result;
+	}
+	return STATUS_OK;
+} // End NTAG2XX_Write()
+
+
+
+
+
+
+
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -1318,8 +1564,7 @@ const __FlashStringHelper *MFRC522::GetStatusCodeName(MFRC522::StatusCode code	/
  * 
  * @return PICC_Type
  */
-MFRC522::PICC_Type MFRC522::PICC_GetType(byte sak		///< The SAK byte returned from PICC_Select().
-										) {
+MFRC522::PICC_Type MFRC522::PICC_GetType(byte sak) {		///< The SAK byte returned from PICC_Select().
 	// http://www.nxp.com/documents/application_note/AN10833.pdf 
 	// 3.2 Coding of Select Acknowledge (SAK)
 	// ignore 8-bit (iso14443 starts with LSBit = bit 1)
@@ -1341,6 +1586,23 @@ MFRC522::PICC_Type MFRC522::PICC_GetType(byte sak		///< The SAK byte returned fr
 } // End PICC_GetType()
 
 /**
+ * Evaluates the Version bytes of NTAG2xx tags to determine the PICC type.
+ * 
+ * @return PICC_Type
+ */
+MFRC522::PICC_Type MFRC522::NTAG2XX_GetType(byte *buffer) {
+
+	if ((buffer[0] == 0x0) && (buffer[2] == 0x4)) {
+		if (buffer[4] == 0x1) {
+			if (buffer[6] == 0x0F) return PICC_TYPE_NTAG213;
+			if (buffer[6] == 0x11) return PICC_TYPE_NTAG215;
+			if (buffer[6] == 0x13) return PICC_TYPE_NTAG216;
+		} 
+	}
+	return PICC_TYPE_UNKNOWN;
+} // End NTAG2XX_GetType()
+								
+/**
  * Returns a __FlashStringHelper pointer to the PICC type name.
  * 
  * @return const __FlashStringHelper *
@@ -1355,6 +1617,9 @@ const __FlashStringHelper *MFRC522::PICC_GetTypeName(PICC_Type piccType	///< One
 		case PICC_TYPE_MIFARE_4K:		return F("MIFARE 4KB");
 		case PICC_TYPE_MIFARE_UL:		return F("MIFARE Ultralight or Ultralight C");
 		case PICC_TYPE_MIFARE_PLUS:		return F("MIFARE Plus");
+		case PICC_TYPE_NTAG213:			return F("NTAG213");
+		case PICC_TYPE_NTAG215:			return F("NTAG215");
+		case PICC_TYPE_NTAG216:			return F("NTAG216");
 		case PICC_TYPE_MIFARE_DESFIRE:	return F("MIFARE DESFire");
 		case PICC_TYPE_TNP3XXX:			return F("MIFARE TNP3XXX");
 		case PICC_TYPE_NOT_COMPLETE:	return F("SAK indicates UID is not complete.");
@@ -1935,6 +2200,29 @@ bool MFRC522::PICC_IsNewCardPresent() {
 	MFRC522::StatusCode result = PICC_RequestA(bufferATQA, &bufferSize);
 	return (result == STATUS_OK || result == STATUS_COLLISION);
 } // End PICC_IsNewCardPresent()
+
+
+/**
+ * Returns true if a PICC responds to PICC_CMD_WUPA.
+ * Only "old" cards in state HALT are invited.
+ * 
+ * @return bool
+ */
+bool MFRC522::PICC_IsCardStillPresent() {
+	byte bufferATQA[2];
+	byte bufferSize = sizeof(bufferATQA);
+
+	// Wake the card up again
+	MFRC522::StatusCode result = PICC_WakeupA(bufferATQA, &bufferSize);
+
+	// Halt the card again
+	PICC_HaltA();
+
+	return (result == STATUS_OK);
+} // End PICC_IsCardStillPresent()
+
+
+
 
 /**
  * Simple wrapper around PICC_Select.
