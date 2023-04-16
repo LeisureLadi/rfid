@@ -2,12 +2,12 @@
   "name": "MFRC522",
   "version": "1.4.10",
   "license": "Unlicense",
-  "keywords": "rfid, spi",
-  "description": "Arduino RFID Library for MFRC522 (SPI). Read/Write a RFID Card or Tag using the ISO/IEC 14443A/MIFARE interface.",
+  "keywords": "rfid, spi, MIFARE, NTAG2xx",
+  "description": "Arduino RFID Library for MFRC522 (SPI). Read/Write a RFID Card or Tag using the ISO/IEC 14443A/MIFARE & NTAG2xx interface.",
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/miguelbalboa/rfid.git"
+    "url": "https://github.com/LeisureLadi/rfid"
   },
   "exclude": "doc",
   "frameworks": "arduino",

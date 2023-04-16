@@ -72,7 +72,15 @@ MIFARE_Increment	KEYWORD2
 MIFARE_Ultralight_Write	KEYWORD2
 MIFARE_GetValue	KEYWORD2
 MIFARE_SetValue	KEYWORD2
-PCD_NTAG216_AUTH	KEYWORD2
+# Functions for communicating with NTAG2XX PICCs
+NTAG2XX_GETVERSION	KEYWORD2
+NTAG2XX_GETSIGNATURE	KEYWORD2
+NTAG2XX_GETCNT	KEYWORD2
+NTAG2XX_AUTH	KEYWORD2
+NTAG2XX_Read4Pages	KEYWORD2
+NTAG2XX_FastRead	KEYWORD2
+NTAG2XX_Write	KEYWORD2
+NTAG2XX_GetType	KEYWORD2
 
 # Support functions
 PCD_MIFARE_Transceive	KEYWORD2
@@ -97,6 +105,7 @@ MIFARE_UnbrickUidSector	KEYWORD2
 
 # Convenience functions - does not add extra functionality
 PICC_IsNewCardPresent	KEYWORD2
+PICC_IsCardStillPresent	KEYWORD2
 PICC_ReadCardSerial	KEYWORD2
 
 #######################################

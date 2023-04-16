@@ -2,6 +2,9 @@
 
 xxxxx , v1.4.11
 
+16 Apr 2023 , v1.4.10.a
+- Added functions for handling NTAG2xx cards/tags 
+
 1 Nov 2021 , v1.4.10
 - fix: timeout on Non-AVR boards; feat: Use yield() in busy wait loops @greezybacon 
 - fix PCD problem after selftest
